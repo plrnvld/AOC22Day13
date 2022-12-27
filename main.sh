@@ -139,7 +139,7 @@ split_packet() {
 packet1="[[4,4],4,4]"
 packet2="[[4,4],4,4,4]"
 
-split_packet "[[4,4],4,4]" array1
+split_packet $packet1 array1
 split_packet $packet2 array2
 
 check_arrays array1 array2
