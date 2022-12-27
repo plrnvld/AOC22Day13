@@ -23,11 +23,47 @@ read_input() {
     done < $1
 }
 
-check_order_nums() {
+check_nums() {
     echo "> $1"
     echo "> $2"
     [ "$1" -le "$2" ]
     return
+}
+
+check_arrays() {
+    local -n list1=$1
+    local -n list2=$2
+    local len1=${#list1[@]}
+    local len2=${#list2[@]}
+
+    echo "Length 1: $len1"
+    echo "Length 2: $len2"
+
+    for (( i=0; i<$len1; i++ ))    
+    do
+      if [[ $i -ge $len2 ]]
+      then
+        return 1
+      fi
+
+      local item1=${list1[$i]}
+      local item2=${list2[$i]}
+
+      is_list "${list1[$i]}"
+      local is_list1=$?
+
+      is_list "${list2[$i]}"
+      local is_list2=$?
+    
+      echo "list ($item1)? $is_list1 and list ($item2)? $is_list1"; 
+    done
+    
+}
+
+is_list() {
+    local part=$1
+    local start=${part:0:1}
+    [[ $start == "[" ]]
 }
 
 split_packet() {
@@ -41,7 +77,7 @@ split_packet() {
     do
 
       local c=${packet:$i:1}
-      echo ">> $c"
+      # echo ">> $c"
 
       if [[ $c == "," ]] && [[ $bracketCount -eq 1 ]] # next item starts
       then
@@ -53,30 +89,28 @@ split_packet() {
       elif [[ $c == "[" ]] && [[ $bracketCount -eq 0 ]]
       then
           ((bracketCount+=1))
-          echo "BR (first): $bracketCount"
+          # echo "BR (first): $bracketCount"
       elif [[ $c == "[" ]] # $bracketCount > 1
       then
         ((bracketCount+=1))
         collect+="${c}"
-        echo "BR++ (inside subitem): $bracketCount"
+        # echo "BR++ (inside subitem): $bracketCount"
       elif [[ $c == "]" ]] && [[ $bracketCount -eq 1 ]] #final item
       then
           ((bracketCount-=1))
           items+=($collect)
           collect=""
-          echo "BR (final): $bracketCount"
+          # echo "BR (final): $bracketCount"
       elif [[ $c == "]" ]] # $bracketCount > 1          
       then
           collect+="${c}"
           ((bracketCount-=1))
-          echo "BR-- (inside subitem): $bracketCount"
+          # echo "BR-- (inside subitem): $bracketCount"
       else
         collect+="${c}"
       fi
       
-    done
-    
-    # items+=("two" "three")    
+    done  
 }
 
 # read_input "$input"
@@ -90,10 +124,22 @@ split_packet() {
 # check_order_nums 7 5
 #echo "$?"
 
-split_packet "[1,10,311,[1,2,[2]],1]" output
+# split_packet "[[4,4],4,4,4]" output
 
-echo "Print result"
-echo "${output[*]}"
-echo "End print"
+# echo "Result"
+# echo "${output[*]}"
+# echo "${#output[@]}"
 
+# for (( j=0; j<${#output[@]}; j++ ))
+# do
+#   is_list "${output[$j]}"
+#   echo "list (${output[$j]})? $?"; 
+# done
 
+packet1="[[4,4],4,4]"
+packet2="[[4,4],4,4,4]"
+
+split_packet "[[4,4],4,4]" array1
+split_packet $packet2 array2
+
+check_arrays array1 array2
