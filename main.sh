@@ -1,19 +1,27 @@
 input="./Example.txt"
 
+results=0
+
 compare_lines() {
     local packet1=$1
     local packet2=$2
+    local index=$3
     local array1=()
     local array2=()
     # echo "*****"
-    echo "$1"
-    echo "$2"
-    echo "*****"
+    # echo "$1"
+    # echo "$2"
+    # echo "*****"
     split_packet $packet1 array1
     split_packet $packet2 array2
 
     check_arrays array1 array2
-    echo "Result: $?"
+    local is_success=$?
+    echo "Check for $index = $is_success"
+    if [[ $is_success -eq 0 ]]
+    then
+        ((results+=index))
+    fi
 }
 
 read_input() {
@@ -26,7 +34,8 @@ read_input() {
             pairs+=("$line")
             
             if test "${#pairs[@]}" -eq 2; then 
-                compare_lines "${pairs[0]}" "${pairs[1]}"
+                compare_lines "${pairs[0]}" "${pairs[1]}" $index
+                ((index++))
                 pairs=()
             fi
         fi
@@ -34,8 +43,8 @@ read_input() {
 }
 
 check_nums() { # Takes two arguments
-    echo "> $1"
-    echo "> $2"
+    # echo "> $1"
+    # echo "> $2"
     [[ "$1" -le "$2" ]]
     return
 }
@@ -46,25 +55,25 @@ check_arrays() { # Takes two array references
     local len1=${#list1[@]}
     local len2=${#list2[@]}
     
-    echo "Length 1: $len1"
-    echo "Length 2: $len2"
+    # echo "Length 1: $len1"
+    # echo "Length 2: $len2"
 
-    echo "Looping"
-    echo "${list1[*]}"
-    echo "${list2[*]}"
-    echo "-------"
+    # echo "Looping"
+    # echo "${list1[*]}"
+    # echo "${list2[*]}"
+    # echo "-------"
 
     for (( i=0; i<$len1; i++ ))    
     do
       if [[ $i -ge $len2 ]]
       then
-        echo "List 2 ends early"
+        # echo "List 2 ends early"
         return 1
       fi
 
       local item1=${list1[$i]}
       local item2=${list2[$i]}
-      echo "=> Comparing[$i] ($item1) and ($item2)"
+      # echo "=> Comparing[$i] ($item1) and ($item2)"
       
       is_list "${list1[$i]}"
       local is_list1=$?
@@ -77,51 +86,51 @@ check_arrays() { # Takes two array references
       then
         local arr1=()
         local arr2=()
-        echo "((case 1 L L))"
+        # echo "((case 1 L L))"
         split_packet "$item1" arr1
         split_packet "$item2" arr2
-        check_arrays case1arr1 case1arr2
+        check_arrays arr1 arr2
         local check_success=$?
         if [[ $check_success -eq 1 ]]
         then
-            echo "(case 1) Item $item1 and $item2 are not ordered"
+            # echo "(case 1) Item $item1 and $item2 are not ordered"
             return 1
         fi
       elif [[ $is_list1 -eq 0 ]]
       then
         local arr1=()
         local arr2=()
-        echo "((case 2 L N))"
+        # echo "((case 2 L N))"
         split_packet "$item1" arr1
         split_packet "[$item2]" arr2
         check_arrays arr1 arr2
         local check_success=$?
         if [[ $check_success -eq 1 ]]
         then
-            echo "(case 2) Item $item1 and $item2 are not ordered"
+            # echo "(case 2) Item $item1 and $item2 are not ordered"
             return 1
         fi
       elif [[ $is_list2 -eq 0 ]]
       then
         local arr1=()
         local arr2=()
-        echo "((case 3 N L))"
+        # echo "((case 3 N L))"
         split_packet "[$item1]" arr1
         split_packet "$item2" arr2
         check_arrays arr1 arr2
         local check_success=$?
         if [[ $check_success -eq 1 ]]
         then
-            echo "(case 3) Item $item1 and $item2 are not ordered"
+            # echo "(case 3) Item $item1 and $item2 are not ordered"
             return 1
         fi
       else
-        echo "((case 4 N N))"
+        # echo "((case 4 N N))"
         check_nums "$item1" "$item2"
         local check_success=$?
         if [[ $check_success -eq 1 ]]
         then
-            echo "(case 4) Item $item1 and $item2 are not ordered"
+            # echo "(case 4) Item $item1 and $item2 are not ordered"
             return 1
         fi
       fi
@@ -218,3 +227,4 @@ split_packet() { # Takes one string and one array reference
 # echo "Result: $?"
 
 read_input $input
+echo $results
