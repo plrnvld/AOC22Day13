@@ -54,6 +54,13 @@ check_arrays() {
 
       is_list "${list2[$i]}"
       local is_list2=$?
+
+      if [[ is_list1 -eq 0 ]] && [[ is_list2 -eq 0 ]]
+      then 
+        check_arrays item1 item2
+        local check_success=$?
+        # ################### Continue here
+      fi
     
       echo "list ($item1)? $is_list1 and list ($item2)? $is_list1"; 
     done
