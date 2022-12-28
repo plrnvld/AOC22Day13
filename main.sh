@@ -1,4 +1,4 @@
-input="./Example.txt"
+input="./Input.txt"
 
 results=0
 
@@ -17,10 +17,12 @@ compare_lines() {
 
     check_arrays array1 array2
     local is_success=$?
-    echo "Check for $index = $is_success"
     if [[ $is_success -eq 0 ]]
     then
         ((results+=index))
+        echo "Check[$index] = $is_success, result now $results"
+    else 
+        echo "Check[$index] = $is_success"
     fi
 }
 
@@ -62,6 +64,11 @@ check_arrays() { # Takes two array references
     # echo "${list1[*]}"
     # echo "${list2[*]}"
     # echo "-------"
+
+    if [[ $len1 -eq 0 ]] # left has no more elements, so right order
+    then
+        return 0
+    fi
 
     for (( i=0; i<$len1; i++ ))    
     do
@@ -194,37 +201,7 @@ split_packet() { # Takes one string and one array reference
     done  
 }
 
-# read_input "$input"
-
-# check_order_nums 4 5
-# echo "$?"
-
-# check_order_nums -6 -5
-# echo "$?"
-
-# check_order_nums 7 5
-#echo "$?"
-
-# split_packet "[[4,4],4,4,4]" output
-
-# echo "Result"
-# echo "${output[*]}"
-# echo "${#output[@]}"
-
-# for (( j=0; j<${#output[@]}; j++ ))
-# do
-#   is_list "${output[$j]}"
-#   echo "list (${output[$j]})? $?"; 
-# done
-
-# packet1="[[1],[2,3,4]]"
-# packet2="[[1],4]"
-
-# split_packet $packet1 array1
-# split_packet $packet2 array2
-
-# check_arrays array1 array2
-# echo "Result: $?"
-
 read_input $input
 echo $results
+
+# 3720 too low
