@@ -1,4 +1,4 @@
-input="./Input.txt"
+input="./Selection.txt"
 
 results=0
 
@@ -9,8 +9,8 @@ compare_lines() {
     local array1=()
     local array2=()
     # echo "*****"
-    # echo "$1"
-    # echo "$2"
+    echo "  $1"
+    echo "  $2"
     # echo "*****"
     split_packet $packet1 array1
     split_packet $packet2 array2
@@ -37,7 +37,7 @@ read_input() {
             
             if test "${#pairs[@]}" -eq 2; then 
                 compare_lines "${pairs[0]}" "${pairs[1]}" $index
-                ((index++))
+                (( index++ ))
                 pairs=()
             fi
         fi
@@ -71,6 +71,7 @@ check_arrays() { # Takes two array references
     fi
 
     for (( i=0; i<$len1; i++ ))    
+    
     do
       if [[ $i -ge $len2 ]]
       then
@@ -80,14 +81,13 @@ check_arrays() { # Takes two array references
 
       local item1=${list1[$i]}
       local item2=${list2[$i]}
-      # echo "=> Comparing[$i] ($item1) and ($item2)"
+      echo "=> Comparing[$i] ($item1) and ($item2)"
       
       is_list "${list1[$i]}"
       local is_list1=$?
 
       is_list "${list2[$i]}"
       local is_list2=$?
-
       
       if [[ $is_list1 -eq 0 ]] && [[ $is_list2 -eq 0 ]]
       then
@@ -144,6 +144,7 @@ check_arrays() { # Takes two array references
     
       # echo "list ($item1)? $is_list1 and list ($item2)? $is_list1"; 
     done
+    
     return 0
 }
 
@@ -201,7 +202,11 @@ split_packet() { # Takes one string and one array reference
     done  
 }
 
-read_input $input
-echo $results
+# read_input $input
+# echo $results
+
+split_packet "[[[]],[]]" test
+echo "${test[*]}"
+echo "${#test[@]}"
 
 # 3720 too low
