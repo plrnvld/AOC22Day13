@@ -1,13 +1,23 @@
 input="./Example.txt"
 
 compare_lines() {
+    local packet1=$1
+    local packet2=$2
+    local array1=()
+    local array2=()
     # echo "*****"
     echo "$1"
     echo "$2"
     echo "*****"
+    split_packet $packet1 array1
+    split_packet $packet2 array2
+
+    check_arrays array1 array2
+    echo "Result: $?"
 }
 
 read_input() {
+    local index=1
     local pairs=()
     while read -r line
     do
@@ -35,38 +45,42 @@ check_arrays() { # Takes two array references
     local -n list2=$2
     local len1=${#list1[@]}
     local len2=${#list2[@]}
-
+    
     echo "Length 1: $len1"
     echo "Length 2: $len2"
 
     echo "Looping"
     echo "${list1[*]}"
     echo "${list2[*]}"
-    echo "---"
+    echo "-------"
 
     for (( i=0; i<$len1; i++ ))    
     do
       if [[ $i -ge $len2 ]]
       then
+        echo "List 2 ends early"
         return 1
       fi
 
       local item1=${list1[$i]}
       local item2=${list2[$i]}
-      local arr1=()
-      local arr2=()
-
+      echo "=> Comparing[$i] ($item1) and ($item2)"
+      
       is_list "${list1[$i]}"
       local is_list1=$?
 
       is_list "${list2[$i]}"
       local is_list2=$?
 
+      
       if [[ $is_list1 -eq 0 ]] && [[ $is_list2 -eq 0 ]]
       then
+        local arr1=()
+        local arr2=()
+        echo "((case 1 L L))"
         split_packet "$item1" arr1
         split_packet "$item2" arr2
-        check_arrays arr1 arr2
+        check_arrays case1arr1 case1arr2
         local check_success=$?
         if [[ $check_success -eq 1 ]]
         then
@@ -75,9 +89,11 @@ check_arrays() { # Takes two array references
         fi
       elif [[ $is_list1 -eq 0 ]]
       then
-        local item2_as_list="[$item2]"
+        local arr1=()
+        local arr2=()
+        echo "((case 2 L N))"
         split_packet "$item1" arr1
-        split_packet "$item2_as_list" arr2
+        split_packet "[$item2]" arr2
         check_arrays arr1 arr2
         local check_success=$?
         if [[ $check_success -eq 1 ]]
@@ -87,8 +103,10 @@ check_arrays() { # Takes two array references
         fi
       elif [[ $is_list2 -eq 0 ]]
       then
-        local item1_as_list="[$item1]"
-        split_packet "$item1_as_list" arr1
+        local arr1=()
+        local arr2=()
+        echo "((case 3 N L))"
+        split_packet "[$item1]" arr1
         split_packet "$item2" arr2
         check_arrays arr1 arr2
         local check_success=$?
@@ -98,6 +116,7 @@ check_arrays() { # Takes two array references
             return 1
         fi
       else
+        echo "((case 4 N N))"
         check_nums "$item1" "$item2"
         local check_success=$?
         if [[ $check_success -eq 1 ]]
@@ -189,10 +208,13 @@ split_packet() { # Takes one string and one array reference
 #   echo "list (${output[$j]})? $?"; 
 # done
 
-packet1="[[4,4],4,4]"
-packet2="[[4,4],4,4,4]"
+# packet1="[[1],[2,3,4]]"
+# packet2="[[1],4]"
 
-split_packet $packet1 array1
-split_packet $packet2 array2
+# split_packet $packet1 array1
+# split_packet $packet2 array2
 
-check_arrays array1 array2
+# check_arrays array1 array2
+# echo "Result: $?"
+
+read_input $input
