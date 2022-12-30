@@ -48,16 +48,82 @@ check_nums() { # Takes two arguments
     # echo "> $2"
     if [[ "$1" -lt "$2" ]]
     then
-        echo "    - Left side is smaller, in the right order"
+        echo "    - Left side is smaller, so inputs are in the right order"
         return 0
     elif [[ "$1" -gt "$2" ]]
     then
-        echo "    - Right side is smaller, NOT in the right order"
+        echo "    - Right side is smaller, so inputs are NOT in the right order"
         return 1
     else
-        echo "    - Same order, returning 2"
+        # echo "    - Same order, returning 2"
         return 2 # Introduce 2, as a sign that further checking is needed
     fi
+}
+
+get_index() { # Takes an array reference and a value
+    local -n my_array=$1
+    local value=$2
+    for i in "${!my_array[@]}" 
+    do
+       if [[ "${my_array[$i]}" = "${value}" ]] 
+       then
+           return $i
+       fi
+    done
+    return -1
+}
+
+check_items() { # Takes two strings that represent a number or a list
+  local item1=$1
+  local item2=$2
+  echo "  - Compare $item1 vs $item2"
+
+  is_list "$item1"
+  local is_list1=$?
+
+  is_list "$item2"
+  local is_list2=$?
+  
+  if [[ $is_list1 -eq 0 ]] && [[ $is_list2 -eq 0 ]]
+  then
+    local arr1=()
+    local arr2=()
+    # echo "((case 1 L L))"
+    split_packet "$item1" arr1
+    split_packet "$item2" arr2
+    check_arrays arr1 arr2
+    local check_success=$?
+    if [[ $check_success -ne 2 ]]
+    then
+        # echo "(case 1) Item $item1 and $item2 are not ordered"
+        return $check_success
+    else
+        : # echo "Continuing from result $check_success, what to do?"
+        : # echo "> Index $i of these (${list1[*]}) items"
+    fi
+  elif [[ $is_list1 -eq 0 ]]
+  then
+    # echo "((case 2 L N))"
+    check_items $item1 "[$item2]"
+    local check_success=$?
+    return $check_success    
+  elif [[ $is_list2 -eq 0 ]]
+  then
+    check_items "[$item1]" $item2
+    local check_success=$?
+    return $check_success  
+  else
+    # echo "((case 4 N N))"
+    check_nums "$item1" "$item2"
+    local check_success=$?
+    if [[ $check_success -ne 2 ]]
+    then
+        return $check_success
+    elif [[ $check_success -eq 2 ]]
+    then
+       : # echo "Result 2 received, current index $i of (${list1[*]}) items"
+    fi
+  fi
 }
 
 check_arrays() { # Takes two array references
@@ -80,10 +146,11 @@ check_arrays() { # Takes two array references
     then
         return 2
     fi
-
-    for (( i=0; i<$len1; i++ ))    
+    for item1 in "${list1[@]}"  
     do
-      echo "   Next item, current index = $i of $len1 items"
+      get_index list1 "$item1"
+      local i=$?
+      # echo "   Next item, current index = $i of these (${list1[*]}) items"
     
       if [[ $i -ge $len2 ]]
       then
@@ -91,78 +158,20 @@ check_arrays() { # Takes two array references
         return 1
       fi
 
-      local item1=${list1[$i]}
       local item2=${list2[$i]}
-      echo "  - Compare $item1 vs $item2"
-      
-      is_list "${list1[$i]}"
-      local is_list1=$?
-
-      is_list "${list2[$i]}"
-      local is_list2=$?
-      
-      if [[ $is_list1 -eq 0 ]] && [[ $is_list2 -eq 0 ]]
+      check_items "$item1" "$item2"
+      local check_success=$?
+      if [[ $check_success -ne 2 ]]
       then
-        local arr1=()
-        local arr2=()
-        echo "((case 1 L L))"
-        split_packet "$item1" arr1
-        split_packet "$item2" arr2
-        check_arrays arr1 arr2
-        local check_success=$?
-        if [[ $check_success -ne 2 ]]
-        then
-            # echo "(case 1) Item $item1 and $item2 are not ordered"
-            return $check_success
-        else
-            echo "Continueing from result $check_success, what to do?"
-            echo "> Item $i from $len1"
-        fi
-      elif [[ $is_list1 -eq 0 ]]
-      then
-        local arr1=()
-        local arr2=()
-        echo "((case 2 L N))"
-        split_packet "$item1" arr1
-        split_packet "[$item2]" arr2
-        check_arrays arr1 arr2
-        local check_success=$?
-        if [[ $check_success -ne 2 ]]
-        then
-            # echo "(case 2) Item $item1 and $item2 are not ordered"
-            return $check_success
-        fi
-      elif [[ $is_list2 -eq 0 ]]
-      then
-        local arr1=()
-        local arr2=()
-        echo "((case 3 N L))"
-        split_packet "[$item1]" arr1
-        split_packet "$item2" arr2
-        check_arrays arr1 arr2
-        local check_success=$?
-        if [[ $check_success -ne 2 ]]
-        then
-            # echo "(case 3) Item $item1 and $item2 are not ordered"
-            return $check_success
-        fi
-      else
-        echo "((case 4 N N))"
-        check_nums "$item1" "$item2"
-        local check_success=$?
-        if [[ $check_success -ne 2 ]]
-        then
-            return $check_success
-        elif [[ $check_success -eq 2 ]]
-        then
-           echo "Result 2 received, current index $i of $len1 items"
-        fi
+        echo "Received $check_success"
+        return $check_success
       fi
 
-      echo "> End of one loop code, current index $i of $len1 items"
+      # echo "> End of one loop code, current index $i of these (${list1[*]}) items"
       # echo "list ($item1)? $is_list1 and list ($item2)? $is_list1"; 
+      (( i+=1 ))
     done
-    echo ">> Full loop finished"
+    # echo ">> Full loop finished"
     
     return 2
 }
@@ -221,7 +230,7 @@ split_packet() { # Takes one string and one array reference
     done  
 }
 
-read_input "Selection.txt"
+read_input "Example.txt"
 echo $results
 
 # split_packet "[[[]],[]]" test
