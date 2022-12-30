@@ -83,7 +83,7 @@ check_arrays() { # Takes two array references
 
     for (( i=0; i<$len1; i++ ))    
     do
-      # echo "Next item"
+      echo "   Next item, current index = $i of $len1 items"
     
       if [[ $i -ge $len2 ]]
       then
@@ -114,6 +114,9 @@ check_arrays() { # Takes two array references
         then
             # echo "(case 1) Item $item1 and $item2 are not ordered"
             return $check_success
+        else
+            echo "Continueing from result $check_success, what to do?"
+            echo "> Item $i from $len1"
         fi
       elif [[ $is_list1 -eq 0 ]]
       then
@@ -152,12 +155,14 @@ check_arrays() { # Takes two array references
             return $check_success
         elif [[ $check_success -eq 2 ]]
         then
-           echo "Result 2 received, current $i of $len1"
+           echo "Result 2 received, current index $i of $len1 items"
         fi
       fi
-    
+
+      echo "> End of one loop code, current index $i of $len1 items"
       # echo "list ($item1)? $is_list1 and list ($item2)? $is_list1"; 
     done
+    echo ">> Full loop finished"
     
     return 2
 }
