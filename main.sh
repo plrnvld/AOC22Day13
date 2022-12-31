@@ -45,6 +45,20 @@ read_input() {
     done < $1
 }
 
+read_input_to_array() {
+    local index=1
+    input_array=()
+    while read -r line
+    do
+        # echo "Reading ${line}"
+        if test "$line" != ""; then
+            # echo "> Adding"
+            input_array+=("${line}")
+        fi
+    (( index++ ))
+    done < $1
+}
+
 check_nums() { # Takes two string arguments that represent numbers
     local level=$3
     local indent=`printf '%*s' "$level"`
@@ -231,5 +245,46 @@ split_packet() { # Takes one string and one array reference
     done  
 }
 
-read_input "Input.txt"
-echo $results
+# read_input "Input.txt"
+# echo $results
+
+qsort() {
+   local pivot i smaller=() larger=()
+   qsort_ret=()
+   (($#==0)) && return 0
+   pivot=$1
+   shift
+   for i; do
+      # This sorts strings lexicographically.
+      if [[ $i < $pivot ]]; then
+         smaller+=( "$i" )
+      else
+         larger+=( "$i" )
+      fi
+   done
+   qsort "${smaller[@]}"
+   smaller=( "${qsort_ret[@]}" )
+   qsort "${larger[@]}"
+   larger=( "${qsort_ret[@]}" )
+   qsort_ret=( "${smaller[@]}" "$pivot" "${larger[@]}" )
+}
+
+array=(a c b f 3 5)
+# qsort "${array[@]}"
+# declare -p qsort_ret
+# declare -a qsort_ret='([0]="3" [1]="5" [2]="a" [3]="b" [4]="c" [5]="f")'
+
+# echo "${qsort_ret[*]}"
+
+read_input_to_array "Example.txt"
+
+echo "Length: ${#input_array[@]}"
+qsort "${input_array[@]}"
+echo "${qsort_ret[*]}"
+
+num=1
+for sorted_line in "${qsort_ret[@]}"
+do
+   echo "[${num}] [${sorted_line}]"
+   (( num ++ ))
+done
