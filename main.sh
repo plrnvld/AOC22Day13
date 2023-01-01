@@ -6,9 +6,9 @@ compare_lines() {
     local index=$3
     local array1=()
     local array2=()
-    echo
-    echo "== Pair ${index} =="
-    echo "- Compare "$1" vs "$2""
+    # echo
+    # echo "== Pair ${index} =="
+    # echo "- Compare "$1" vs "$2""
     split_packet $packet1 array1
     split_packet $packet2 array2
 
@@ -17,14 +17,15 @@ compare_lines() {
     if [[ $is_success -eq 0 ]] || [[ $is_success -eq 2 ]]
     then
         ((results+=index))
-        echo ""
-        echo "Right order, result is now $results"
-        echo ""
+        # echo ""
+        : # echo "Right order, result is now $results"
+        # echo ""
     else
-        echo ""
-        echo "Wrong order"
-        echo ""
+        # echo ""
+        : # echo "Wrong order"
+        # echo ""
     fi
+    return $is_success
 }
 
 read_input() {
@@ -65,11 +66,11 @@ check_nums() { # Takes two string arguments that represent numbers
     
     if [[ "$1" -lt "$2" ]]
     then
-        echo "${indent}- Left side is smaller, so inputs are in the right order"
+        # echo "${indent}- Left side is smaller, so inputs are in the right order"
         return 0
     elif [[ "$1" -gt "$2" ]]
     then
-        echo "${indent}- Right side is smaller, so inputs are NOT in the right order"
+        # echo "${indent}- Right side is smaller, so inputs are NOT in the right order"
         return 1
     else    
         # echo "    - Same order, returning 2"
@@ -97,7 +98,7 @@ check_items() { # Takes two strings that represent a number or a list
   local next_level=$((level+2))
   local indent=`printf '%*s' "$level"`
   local next_indent=`printf '%*s' "$next_level"`
-  echo "${indent}- Compare $item1 vs $item2"
+  # echo "${indent}- Compare $item1 vs $item2"
 
   is_list "$item1"
   local is_list1=$?
@@ -118,14 +119,14 @@ check_items() { # Takes two strings that represent a number or a list
   elif [[ $is_list1 -eq 0 ]] && [[ $is_list2 -eq 1 ]]
   then
     # echo "((case 2 L N))"
-    echo "${next_indent}- Mixed types; convert right to [${item2}] and retry comparison"
+    # echo "${next_indent}- Mixed types; convert right to [${item2}] and retry comparison"
     check_items $item1 "[$item2]" "$next_level"
     local check_success=$?
     return $check_success
   elif [[ $is_list1 -eq 1 ]] && [[ $is_list2 -eq 0 ]]
   then
     # echo "((case 3 N L))"
-    echo "${next_indent}- Mixed types; convert left to [${item1}] and retry comparison"
+    # echo "${next_indent}- Mixed types; convert left to [${item1}] and retry comparison"
     check_items "[$item1]" $item2 "$next_level"
     local check_success=$?
     return $check_success 
@@ -156,11 +157,11 @@ check_arrays() { # Takes two array references
         return 2    
     elif [[ $len1 -eq 0 ]]
     then
-        echo "${next_indent}- Left side ran out of items, so inputs are in the right order"
+        # echo "${next_indent}- Left side ran out of items, so inputs are in the right order"
         return 0
     elif [[ $len2 -eq 0 ]] 
     then
-        echo "${next_indent}- Right side ran out of items, so inputs are NOT in the right order"
+        # echo "${next_indent}- Right side ran out of items, so inputs are NOT in the right order"
         return 1
     fi
 
@@ -170,7 +171,7 @@ check_arrays() { # Takes two array references
     do
       if [[ $pos -ge $len2 ]]
       then
-        echo "${next_indent}- Right* side ran out of items, so inputs are NOT in the right order"
+        # echo "${next_indent}- Right* side ran out of items, so inputs are NOT in the right order"
         return 1
       fi
 
@@ -187,11 +188,11 @@ check_arrays() { # Takes two array references
 
     if [[ $len1 -gt $len2 ]]
     then
-        echo "${next_indent}- Right side ran out of items, so inputs are NOT in the right order"
+        # echo "${next_indent}- Right side ran out of items, so inputs are NOT in the right order"
         return 1
     elif [[ $len1 -lt $len2 ]]
     then
-        echo "${next_indent}- Left side ran out of items, so inputs are in the right order"
+        # echo "${next_indent}- Left side ran out of items, so inputs are in the right order"
         return 0
     fi
 
@@ -249,17 +250,19 @@ split_packet() { # Takes one string and one array reference
 # echo $results
 
 qsort() {
-   local pivot i smaller=() larger=()
+   local pivot entry smaller=() larger=()
    qsort_ret=()
    (($#==0)) && return 0
    pivot=$1
    shift
-   for i; do
+   for entry; do
       # This sorts strings lexicographically.
-      if [[ $i < $pivot ]]; then
-         smaller+=( "$i" )
+      # [[ $entry < $pivot ]]
+      compare_lines "$entry" "$pivot"
+      if [[ $? -eq 0 ]]; then
+         smaller+=( "$entry" )
       else
-         larger+=( "$i" )
+         larger+=( "$entry" )
       fi
    done
    qsort "${smaller[@]}"
@@ -276,11 +279,12 @@ array=(a c b f 3 5)
 
 # echo "${qsort_ret[*]}"
 
-read_input_to_array "Example.txt"
+read_input_to_array "Input.txt"
 
 echo "Length: ${#input_array[@]}"
 qsort "${input_array[@]}"
 echo "${qsort_ret[*]}"
+echo
 
 num=1
 for sorted_line in "${qsort_ret[@]}"
